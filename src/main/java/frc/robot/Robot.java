@@ -5,7 +5,10 @@
 package frc.robot;
 
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.networktables.DoubleArrayPublisher;
@@ -31,6 +34,8 @@ public class Robot extends TimedRobot {
   private final RobotContainer m_robotContainer;
 
   QuestNav questNav = new QuestNav();
+
+  Field2d m_field = new Field2d();
 Matrix<N3, N1> QUESTNAV_STD_DEVS =
     VecBuilder.fill(
         0.02, // Trust down to 2cm in X direction
@@ -40,12 +45,20 @@ Matrix<N3, N1> QUESTNAV_STD_DEVS =
 
   public Robot() {
     m_robotContainer = new RobotContainer();
-  }
+
+    SmartDashboard.putData("FieldQuest", m_field);
+
+    m_field.setRobotPose(new Pose2d(0.0,0.0, new Rotation2d(180.0)));
+
+    questNav.setPose(new Pose3d(0.0, 0.0, 0.0, new Rotation3d(0.0, 0.0, 0.0)));
+    }
 
 
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run(); 
+
+    questNav.commandPeriodic();
 
     if (questNav.isTracking()) {
         // Get the latest pose data frames from the Quest
@@ -68,6 +81,8 @@ Matrix<N3, N1> QUESTNAV_STD_DEVS =
 
             SmartDashboard.putNumber("QuestPoseX", questPose.getX());
             SmartDashboard.putNumber("QuestPoseY", questPose.getY());
+
+            m_field.setRobotPose(questPose.toPose2d());
 
         }
     }
